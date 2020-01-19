@@ -18,14 +18,47 @@ void loadMedia();
 
 void cleanUp();
 
+void renderScene();
+
+void start();
+
+class Frog {
+  public:
+	Frog();
+	void render();
+	void init(int x, int y, int w, int h);
+	void handleEvent(SDL_Event &e);
+	void move();
+	int xpos;
+	int ypos;
+	int width;
+	int height;
+	int xvel;
+	int yvel;
+	SDL_Rect collider;
+};
+
 // textures
 SDL_Texture* background;
 SDL_Texture* frogTexture;
+
+// objects
+Frog frog;
+
+int frogX = 475;
+int frogY = 675;
+int frogW = 75;
+int frogH = 75;
+
+int frogSpeed = 4;
 
 void init() {
 	SDL_Init(SDL_INIT_VIDEO);
 	gWindow = SDL_CreateWindow("Frog Hopper - Frogger Clone", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	
+	// initialize and render frog
+	frog.init(frogX, frogY, frogW, frogH);	
 	
 	//  initialize PNG loading
 	int imgFlags = IMG_INIT_PNG;
@@ -56,24 +89,104 @@ class Vehicle {
 	
 }
 */
-/*
-class Frog {
-  public:
-	Frog();
-	void render();
-  private:
-	
+
+Frog::Frog() {
+	xpos = 0;
+	ypos = 0;
+	width = 0;
+	height = 0;
+	xvel = 0;
+	yvel = 0;
 }
-*/
-void renderScene() {
-	SDL_RenderCopy(gRenderer, background, NULL, NULL);
-	SDL_Rect renderQuad = { 475, 675, 75, 75};
+
+void Frog::render() {
+	SDL_Rect renderQuad = {xpos, ypos, width, height};
 	SDL_RenderCopy(gRenderer, frogTexture, NULL, &renderQuad);
 }
 
-void frogger() {
+void Frog::init(int x, int y, int w, int h) {
+	xpos = x;
+	ypos = y;
+	width = w;
+	height = h;
+	collider = {x, y, w, h};
+}
+
+void Frog::handleEvent(SDL_Event &e) {
+	if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
+		switch (e.key.keysym.sym) {
+			case SDLK_UP:
+				yvel -= 4;
+				break;
+			case SDLK_DOWN:
+				yvel += 4;
+				break;
+			case SDLK_LEFT:
+				xvel -= 4;
+				break;
+			case SDLK_RIGHT:
+				xvel += 4;
+				break;
+		}
+	}
+	
+	if (e.type == SDL_KEYUP && e.key.repeat == 0) {
+		switch (e.key.keysym.sym) {
+			case SDLK_UP:
+				yvel += 4;
+				break;
+			case SDLK_DOWN:
+				yvel -= 4;
+				break;
+			case SDLK_LEFT:
+				xvel += 4;
+				break;
+			case SDLK_RIGHT:
+				xvel -= 4;
+				break;
+		}
+	}
+}
+
+void Frog::move() {
+	xpos += xvel;
+	collider.x = xpos;
+	
+	// if too far left or right
+	if ((xpos < 0) || (xpos + width > SCREEN_WIDTH)) {
+		// move back
+		xpos -= xvel;
+		collider.x = xpos;
+	}
+	
+	ypos += yvel;
+	collider.y = ypos;
+	
+	// if too far up or down
+	if ((ypos < 0) || (ypos + height > SCREEN_HEIGHT)) {
+		// move back
+		ypos -= yvel;
+		collider.y = ypos;
+	}
+}
+
+void renderScene() {	
+	SDL_RenderCopy(gRenderer, background, NULL, NULL);
+	frog.render();
+}
+
+bool checkWin() {
+	if (frog.ypos < 15) {
+		SDL_Delay(500);
+		frog.ypos = 675;
+	}
+}
+
+void start() {
 	renderScene();
-//	Frog.render();
+	frog.move();
+	checkWin();
+	frog.render();
 }
 
 int main(int argc, char* args[]) {
@@ -86,9 +199,10 @@ int main(int argc, char* args[]) {
 			if (e.type == SDL_QUIT) {
 				running = false;
 			}
+			frog.handleEvent(e);
 		}
 		SDL_RenderClear(gRenderer);
-		frogger();
+		start();
 		SDL_RenderPresent(gRenderer);
 	}
 	cleanUp();
