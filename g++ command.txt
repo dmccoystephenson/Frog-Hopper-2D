@@ -1,0 +1,1 @@
+g++ frogHopper.cpp -IC:\mingw\include\SDL2 -LC:\mingw\lib -w -Wl,-subsystem,windows -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -o frogHopper

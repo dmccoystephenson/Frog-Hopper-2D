@@ -18,9 +18,16 @@ void loadMedia();
 
 void cleanUp();
 
+// box collision detector
+bool checkCollision(SDL_Rect a, SDL_Rect b);
+
 void renderScene();
 
-void start();
+void gameScreen();
+
+void loseScreen();
+
+void winScreen();
 
 class Frog {
   public:
@@ -60,6 +67,8 @@ SDL_Texture* background;
 SDL_Texture* frogTexture;
 SDL_Texture* carRightTexture;
 SDL_Texture* carLeftTexture;
+SDL_Texture* loseTexture;
+SDL_Texture* winTexture;
 
 // objects
 Frog frog;
@@ -105,14 +114,55 @@ void loadMedia() {
 	temp_surface = IMG_Load("carLeft.png");
 	SDL_SetColorKey(temp_surface, SDL_TRUE, SDL_MapRGB(temp_surface->format, 0, 0xFF, 0xFF));
 	carLeftTexture = SDL_CreateTextureFromSurface(gRenderer, temp_surface);
+	temp_surface = IMG_Load("playerLose.png");
+	SDL_SetColorKey(temp_surface, SDL_TRUE, SDL_MapRGB(temp_surface->format, 0, 0xFF, 0xFF));
+	loseTexture = SDL_CreateTextureFromSurface(gRenderer, temp_surface);
+	temp_surface = IMG_Load("playerWin.png");
+	SDL_SetColorKey(temp_surface, SDL_TRUE, SDL_MapRGB(temp_surface->format, 0, 0xFF, 0xFF));
+	winTexture = SDL_CreateTextureFromSurface(gRenderer, temp_surface);
 	SDL_FreeSurface(temp_surface);
 }
 
 void cleanUp() {
+	SDL_DestroyTexture(background);
+	SDL_DestroyTexture(frogTexture);
+	SDL_DestroyTexture(carRightTexture);
+	SDL_DestroyTexture(carLeftTexture);
+	SDL_DestroyTexture(loseTexture);
+	SDL_DestroyTexture(winTexture);
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(gWindow);
 	IMG_Quit();
 	SDL_Quit();
+}
+
+// box collision detector
+bool checkCollision(SDL_Rect a, SDL_Rect b) {
+	int leftA = a.x;
+	int rightA = a.x + a.w;
+	int topA = a.y;
+	int bottomA = a.y + a.h;
+	int leftB = b.x;
+	int rightB = b.x + b.w;
+	int topB = b.y;
+	int bottomB = b.y + b.h;
+	
+	// check if boxes are not touching
+	if (leftA >= rightB) {
+		return false;
+	}
+	if (rightA <= leftB) {
+		return false;
+	}
+	if (topA >= bottomB) {
+		return false;
+	}
+	if (bottomA <= topB) {
+		return false;
+	}
+	
+	// otherwise
+	return true;
 }
 
 Frog::Frog() {
@@ -184,11 +234,21 @@ void Frog::move() {
 		collider.x = xpos;
 	}
 	
+	// if collided with a car
+	if (checkCollision(collider, bottomCarLeft.collider) ||
+		checkCollision(collider, topCarLeft.collider) ||
+		checkCollision(collider, bottomCarRight.collider) ||
+		checkCollision(collider, topCarRight.collider)) {
+			xvel = 0;
+			yvel = 0;
+			loseScreen();
+		}
+	
 	ypos += yvel;
 	collider.y = ypos;
 	
 	// if too far up or down
-	if ((ypos < 0) || (ypos + height > SCREEN_HEIGHT)) {
+	if ((ypos < -100) || (ypos + height > SCREEN_HEIGHT)) {
 		// move back
 		ypos -= yvel;
 		collider.y = ypos;
@@ -244,25 +304,12 @@ void renderScene() {
 }
 
 bool checkWin() {
-	if (frog.ypos < 15) {
-		SDL_Delay(500);
-		frog.ypos = 675;
+	if (frog.ypos < -75) {
+		winScreen();
 	}
 }
 
-void start() {
-	renderScene();
-	frog.move();
-	bottomCarRight.move();
-	topCarRight.move();
-	bottomCarLeft.move();
-	topCarLeft.move();
-	checkWin();
-}
-
-int main(int argc, char* args[]) {
-	init();
-	loadMedia();
+void gameScreen() {
 	SDL_Event e;
 	bool running = true;
 	while (running) {
@@ -273,9 +320,61 @@ int main(int argc, char* args[]) {
 			frog.handleEvent(e);
 		}
 		SDL_RenderClear(gRenderer);
-		start();
+		renderScene();
+		frog.move();
+		bottomCarRight.move();
+		topCarRight.move();
+		bottomCarLeft.move();
+		topCarLeft.move();
+		checkWin();
 		SDL_RenderPresent(gRenderer);
 	}
+}
+
+void loseScreen() {
+	frog.ypos = 675;
+	bool showing = true;
+	SDL_Event e;
+	while (showing) {
+		while (SDL_PollEvent(&e)) {
+			if (e.type == SDL_QUIT) {
+				cleanUp();
+			}
+			if (e.type == SDL_KEYDOWN && e.key.repeat == 0) {
+				cleanUp();
+			}
+		}
+		SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+		SDL_RenderClear(gRenderer);
+		SDL_RenderCopy(gRenderer, loseTexture, NULL, NULL);
+		SDL_RenderPresent(gRenderer);
+	}
+}
+
+void winScreen() {
+	frog.ypos = 675;
+	bool showing = true;
+	SDL_Event ev;
+	while (showing) {
+		while (SDL_PollEvent(&ev)) {
+			if (ev.type == SDL_QUIT) {
+				cleanUp();
+			}
+			if (ev.type == SDL_KEYDOWN && ev.key.repeat == 0) {
+				cleanUp();
+			}
+		}
+		SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+		SDL_RenderClear(gRenderer);
+		SDL_RenderCopy(gRenderer, winTexture, NULL, NULL);
+		SDL_RenderPresent(gRenderer);
+	}
+}
+
+int main(int argc, char* args[]) {
+	init();
+	loadMedia();
+	gameScreen();
 	cleanUp();
 	return 0;
 }
