@@ -1,23 +1,12 @@
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <iostream>
 #include <string>
 
-class Frog {
-  public:
-	Frog();
-	void render();
-	void init(int x, int y, int w, int h);
-	void handleEvent(SDL_Event &e);
-	void move();
-	int xpos;
-	int ypos;
-	int width;
-	int height;
-	int xvel;
-	int yvel;
-	SDL_Rect collider;
-};
+#include "header/Frog.h"
+
+const int SCREEN_WIDTH = 1000;
+const int SCREEN_HEIGHT = 750;
 
 Frog::Frog() {
 	xpos = 0;
@@ -28,7 +17,7 @@ Frog::Frog() {
 	yvel = 0;
 }
 
-void Frog::render() {
+void Frog::render(SDL_Renderer* gRenderer, SDL_Texture* frogTexture) {
 	SDL_Rect renderQuad = {xpos, ypos, width, height};
 	SDL_RenderCopy(gRenderer, frogTexture, NULL, &renderQuad);
 }
@@ -87,16 +76,6 @@ void Frog::move() {
 		xpos -= xvel;
 		collider.x = xpos;
 	}
-	
-	// if collided with a car
-	if (checkCollision(collider, bottomCarLeft.collider) ||
-		checkCollision(collider, topCarLeft.collider) ||
-		checkCollision(collider, bottomCarRight.collider) ||
-		checkCollision(collider, topCarRight.collider)) {
-			xvel = 0;
-			yvel = 0;
-			loseScreen();
-		}
 	
 	ypos += yvel;
 	collider.y = ypos;

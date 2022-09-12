@@ -1,11 +1,10 @@
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <iostream>
 #include <string>
-#include "Frog.cpp"
-#include "Vehicle.cpp"
 
-using namespace std;
+#include "header/Frog.h"
+#include "header/Vehicle.h"
 
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 750;
@@ -136,11 +135,11 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 
 void renderScene() {	
 	SDL_RenderCopy(gRenderer, background, NULL, NULL);
-	frog.render();
-	bottomCarRight.render("right");
-	topCarRight.render("right");
-	bottomCarLeft.render("left");
-	topCarLeft.render("left");
+	frog.render(gRenderer, frogTexture);
+	bottomCarRight.render(gRenderer, carRightTexture, carLeftTexture, "right");
+	topCarRight.render(gRenderer, carRightTexture, carLeftTexture, "right");
+	bottomCarLeft.render(gRenderer, carRightTexture, carLeftTexture, "left");
+	topCarLeft.render(gRenderer, carRightTexture, carLeftTexture, "left");
 }
 
 bool checkWin() {
@@ -162,10 +161,22 @@ void gameScreen() {
 		SDL_RenderClear(gRenderer);
 		renderScene();
 		frog.move();
+
+	// if collided with a car
+	if (checkCollision(frog.collider, bottomCarLeft.collider) ||
+		checkCollision(frog.collider, topCarLeft.collider) ||
+		checkCollision(frog.collider, bottomCarRight.collider) ||
+		checkCollision(frog.collider, topCarRight.collider)) {
+			frog.xvel = 0;
+			frog.yvel = 0;
+			loseScreen();
+		}
+
 		bottomCarRight.move();
 		topCarRight.move();
 		bottomCarLeft.move();
 		topCarLeft.move();
+		
 		checkWin();
 		SDL_RenderPresent(gRenderer);
 	}

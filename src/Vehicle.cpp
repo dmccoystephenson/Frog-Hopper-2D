@@ -1,23 +1,12 @@
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <iostream>
 #include <string>
 
-class Vehicle {
-  public:
-	Vehicle();
-	void render(string direction);
-	void init(int x, int y, int w, int h, int xspeed, int xinitial);
-	void move();
-	int xpos;
-	int ypos;
-	int width;
-	int height;
-	int xvel;
-	int initialX;
-	SDL_Rect collider;
-	
-};
+#include "header/Vehicle.h"
+
+const int SCREEN_WIDTH = 1000;
+const int SCREEN_HEIGHT = 750;
 
 Vehicle::Vehicle() {
 	xpos = 0;
@@ -26,7 +15,7 @@ Vehicle::Vehicle() {
 	height = 0;
 }
 
-void Vehicle::render(string direction) {
+void Vehicle::render(SDL_Renderer* gRenderer, SDL_Texture* carRightTexture, SDL_Texture* carLeftTexture, std::string direction) {
 	SDL_Rect renderQuad = {xpos, ypos, width, height};
 	if (direction == "right") {
 		SDL_RenderCopy(gRenderer, carRightTexture, NULL, &renderQuad);
