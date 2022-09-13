@@ -5,9 +5,6 @@
 
 #include "header/Frog.h"
 
-const int SCREEN_WIDTH = 1000;
-const int SCREEN_HEIGHT = 750;
-
 Frog::Frog() {
 	xpos = 0;
 	ypos = 0;
@@ -66,7 +63,7 @@ void Frog::handleEvent(SDL_Event &e) {
 	}
 }
 
-void Frog::move() {
+void Frog::move(const int SCREEN_WIDTH, const int SCREEN_HEIGHT) {
 	xpos += xvel;
 	collider.x = xpos;
 	

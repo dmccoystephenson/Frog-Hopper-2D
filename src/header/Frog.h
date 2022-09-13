@@ -1,3 +1,6 @@
+#ifndef Frog_h
+#define Frog_h
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <iostream>
@@ -9,7 +12,7 @@ class Frog {
 	void render(SDL_Renderer* gRenderer, SDL_Texture* frogTexture);
 	void init(int x, int y, int w, int h);
 	void handleEvent(SDL_Event &e);
-	void move();
+	void move(const int SCREEN_WIDTH, const int SCREEN_HEIGHT);
 	int xpos;
 	int ypos;
 	int width;
@@ -18,3 +21,5 @@ class Frog {
 	int yvel;
 	SDL_Rect collider;
 };
+
+#endif

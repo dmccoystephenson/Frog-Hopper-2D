@@ -5,9 +5,6 @@
 
 #include "header/Vehicle.h"
 
-const int SCREEN_WIDTH = 1000;
-const int SCREEN_HEIGHT = 750;
-
 Vehicle::Vehicle() {
 	xpos = 0;
 	ypos = 0;
@@ -35,7 +32,7 @@ void Vehicle::init(int x, int y, int w, int h, int xspeed, int xinitial) {
 	initialX = xinitial;
 }
 
-void Vehicle::move() {
+void Vehicle::move(const int SCREEN_WIDTH) {
 	xpos += xvel;
 	collider.x = xpos;
 	

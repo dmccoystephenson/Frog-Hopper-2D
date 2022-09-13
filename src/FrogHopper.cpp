@@ -2,59 +2,13 @@
 #include <SDL2/SDL_image.h>
 #include <iostream>
 #include <string>
-
+#include "header/FrogHopper.h"
 #include "header/Frog.h"
 #include "header/Vehicle.h"
 
-const int SCREEN_WIDTH = 1000;
-const int SCREEN_HEIGHT = 750;
-
-SDL_Window* gWindow = NULL;
-
-SDL_Renderer* gRenderer = NULL;
-
-void init();
-
-void loadMedia();
-
-void cleanUp();
-
-// box collision detector
-bool checkCollision(SDL_Rect a, SDL_Rect b);
-
-void renderScene();
-
-void gameScreen();
-
-void loseScreen();
-
-void winScreen();
-
-// textures
-SDL_Texture* background;
-SDL_Texture* frogTexture;
-SDL_Texture* carRightTexture;
-SDL_Texture* carLeftTexture;
-SDL_Texture* loseTexture;
-SDL_Texture* winTexture;
-
-// objects
-Frog frog;
-Vehicle bottomCarRight;
-Vehicle topCarRight;
-Vehicle bottomCarLeft;
-Vehicle topCarLeft;
-
-int frogX = 475;
-int frogY = 675;
-int frogW = 75;
-int frogH = 75;
-
-int frogSpeed = 4;
-
-void init() {
+FrogHopper::FrogHopper() {
 	SDL_Init(SDL_INIT_VIDEO);
-	gWindow = SDL_CreateWindow("Frog Hopper - Frogger Clone", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	gWindow = SDL_CreateWindow("Frog Hopper", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	
 	// initialize objects
@@ -69,29 +23,29 @@ void init() {
 	IMG_Init(imgFlags);
 }
 
-void loadMedia() {
+void FrogHopper::loadMedia() {
 	SDL_Surface* temp_surface;
-	temp_surface = IMG_Load("background.png");
+	temp_surface = IMG_Load("../resources/background.png");
 	background = SDL_CreateTextureFromSurface(gRenderer, temp_surface);
-	temp_surface = IMG_Load("frog.png");
+	temp_surface = IMG_Load("../resources/frog.png");
 	SDL_SetColorKey(temp_surface, SDL_TRUE, SDL_MapRGB(temp_surface->format, 0, 0xFF, 0xFF));
 	frogTexture = SDL_CreateTextureFromSurface(gRenderer, temp_surface);
-	temp_surface = IMG_Load("carRight.png");
+	temp_surface = IMG_Load("../resources/carRight.png");
 	SDL_SetColorKey(temp_surface, SDL_TRUE, SDL_MapRGB(temp_surface->format, 0, 0xFF, 0xFF));
 	carRightTexture = SDL_CreateTextureFromSurface(gRenderer, temp_surface);
-	temp_surface = IMG_Load("carLeft.png");
+	temp_surface = IMG_Load("../resources/carLeft.png");
 	SDL_SetColorKey(temp_surface, SDL_TRUE, SDL_MapRGB(temp_surface->format, 0, 0xFF, 0xFF));
 	carLeftTexture = SDL_CreateTextureFromSurface(gRenderer, temp_surface);
-	temp_surface = IMG_Load("playerLose.png");
+	temp_surface = IMG_Load("../resources/playerLose.png");
 	SDL_SetColorKey(temp_surface, SDL_TRUE, SDL_MapRGB(temp_surface->format, 0, 0xFF, 0xFF));
 	loseTexture = SDL_CreateTextureFromSurface(gRenderer, temp_surface);
-	temp_surface = IMG_Load("playerWin.png");
+	temp_surface = IMG_Load("../resources/playerWin.png");
 	SDL_SetColorKey(temp_surface, SDL_TRUE, SDL_MapRGB(temp_surface->format, 0, 0xFF, 0xFF));
 	winTexture = SDL_CreateTextureFromSurface(gRenderer, temp_surface);
 	SDL_FreeSurface(temp_surface);
 }
 
-void cleanUp() {
+void FrogHopper::cleanUp() {
 	SDL_DestroyTexture(background);
 	SDL_DestroyTexture(frogTexture);
 	SDL_DestroyTexture(carRightTexture);
@@ -105,7 +59,7 @@ void cleanUp() {
 }
 
 // box collision detector
-bool checkCollision(SDL_Rect a, SDL_Rect b) {
+bool FrogHopper::checkCollision(SDL_Rect a, SDL_Rect b) {
 	int leftA = a.x;
 	int rightA = a.x + a.w;
 	int topA = a.y;
@@ -133,7 +87,7 @@ bool checkCollision(SDL_Rect a, SDL_Rect b) {
 	return true;
 }
 
-void renderScene() {	
+void FrogHopper::renderScene() {	
 	SDL_RenderCopy(gRenderer, background, NULL, NULL);
 	frog.render(gRenderer, frogTexture);
 	bottomCarRight.render(gRenderer, carRightTexture, carLeftTexture, "right");
@@ -142,13 +96,15 @@ void renderScene() {
 	topCarLeft.render(gRenderer, carRightTexture, carLeftTexture, "left");
 }
 
-bool checkWin() {
+bool FrogHopper::checkWin() {
 	if (frog.ypos < -75) {
 		winScreen();
+		return true;
 	}
+	return false;
 }
 
-void gameScreen() {
+void FrogHopper::gameScreen() {
 	SDL_Event e;
 	bool running = true;
 	while (running) {
@@ -160,7 +116,7 @@ void gameScreen() {
 		}
 		SDL_RenderClear(gRenderer);
 		renderScene();
-		frog.move();
+		frog.move(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	// if collided with a car
 	if (checkCollision(frog.collider, bottomCarLeft.collider) ||
@@ -172,17 +128,17 @@ void gameScreen() {
 			loseScreen();
 		}
 
-		bottomCarRight.move();
-		topCarRight.move();
-		bottomCarLeft.move();
-		topCarLeft.move();
+		bottomCarRight.move(SCREEN_WIDTH);
+		topCarRight.move(SCREEN_WIDTH);
+		bottomCarLeft.move(SCREEN_WIDTH);
+		topCarLeft.move(SCREEN_WIDTH);
 		
 		checkWin();
 		SDL_RenderPresent(gRenderer);
 	}
 }
 
-void loseScreen() {
+void FrogHopper::loseScreen() {
 	frog.ypos = 675;
 	bool showing = true;
 	SDL_Event e;
@@ -202,7 +158,7 @@ void loseScreen() {
 	}
 }
 
-void winScreen() {
+void FrogHopper::winScreen() {
 	frog.ypos = 675;
 	bool showing = true;
 	SDL_Event ev;
@@ -223,9 +179,9 @@ void winScreen() {
 }
 
 int main(int argc, char* args[]) {
-	init();
-	loadMedia();
-	gameScreen();
-	cleanUp();
+	FrogHopper frogHopper;
+	frogHopper.loadMedia();
+	frogHopper.gameScreen();
+	frogHopper.cleanUp();
 	return 0;
 }
